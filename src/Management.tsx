@@ -48,7 +48,7 @@ const configs: Record<ActiveKey, { resource: string; title: string; description:
     fields: [
       { key: "title", label: "作業名", required: true, placeholder: "例：追肥作業" },
       { key: "category", label: "分類", placeholder: "例：栽培管理" },
-      { key: "farm_id", label: "農場ID（任意）", placeholder: "農場IDを入力" },
+      { key: "farm_id", label: "所属農場（任意）", type: "farm", placeholder: "農場を選択" },
       { key: "description", label: "内容", type: "textarea" },
       { key: "scheduled_at", label: "予定日時", type: "datetime-local" },
       { key: "status", label: "進捗", type: "select", options: [{value:"todo",label:"未着手"},{value:"in_progress",label:"進行中"},{value:"done",label:"完了"},{value:"cancelled",label:"中止"}] }
@@ -196,7 +196,7 @@ export default function Management({ tab }: { tab: ModuleKey }) {
       <div className="manage-form-grid">{config.fields.map(field=><label key={field.key}>{field.label}{field.required && <em>必須</em>}
         {field.type === "textarea" ? <textarea required={field.required} value={form[field.key] || ""} onChange={e=>setForm(v=>({...v,[field.key]:e.target.value}))}/>
         : field.type === "select" ? <select value={form[field.key] || ""} onChange={e=>setForm(v=>({...v,[field.key]:e.target.value}))}>{field.options?.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</select>
-        : field.type === "farm" ? <select required value={form[field.key] || ""} onChange={e=>setForm(v=>({...v,[field.key]:e.target.value}))}><option value="">農場を選択</option>{farms.map(x=><option key={x.id} value={x.id}>{String(x.name)}</option>)}</select>
+        : field.type === "farm" ? <select required={field.required} value={form[field.key] || ""} onChange={e=>setForm(v=>({...v,[field.key]:e.target.value}))}><option value="">農場を選択（任意）</option>{farms.map(x=><option key={x.id} value={x.id}>{String(x.name)}</option>)}</select>
         : field.type === "field" ? <select required value={form[field.key] || ""} onChange={e=>setForm(v=>({...v,[field.key]:e.target.value}))}><option value="">圃場を選択</option>{fields.map(x=><option key={x.id} value={x.id}>{String(x.name)}</option>)}</select>
         : <input type={field.type || "text"} required={field.required} min={field.type==="number" ? "0" : undefined} placeholder={field.placeholder} value={form[field.key] || ""} onChange={e=>setForm(v=>({...v,[field.key]:e.target.value}))}/>}
       </label>)}</div>
