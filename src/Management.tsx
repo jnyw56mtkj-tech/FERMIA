@@ -5,7 +5,7 @@ import { Plus, RefreshCw, Trash2, Pencil, Save, X, Database, ShieldAlert } from 
 type ModuleKey = "fields" | "crops" | "work" | "inventory";
 type ActiveKey = ModuleKey | "farms";
 type Item = Record<string, unknown> & { id: string };
-type FieldDef = { key: string; label: string; type?: string; required?: boolean; options?: { value: string; label: string }[]; placeholder?: string };
+type FieldDef = { key: string; label: string; type?: "number" | "date" | "datetime-local" | "textarea" | "select" | "farm" | "field"; required?: boolean; options?: { value: string; label: string }[]; placeholder?: string };
 const configs: Record<ActiveKey, { resource: string; title: string; description: string; fields: FieldDef[]; columns: { key: string; label: string }[] }> = {
   farms: {
     resource: "farms", title: "農場管理", description: "経営する農場の基本情報と所在地、面積を管理します。",
