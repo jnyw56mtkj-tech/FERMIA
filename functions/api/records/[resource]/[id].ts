@@ -36,7 +36,7 @@ export async function onRequestPatch({ request, env, params }: PagesContext): Pr
   if (!resource) return errorResponse("Unknown resource.", 404);
   const member = await requireMember(request, env);
   if (!isMemberContext(member)) return member;
-  if (resource[1].managerOnly && !canManageFarmData(member.role)) {
+  if (member.role === "viewer" || (resource[1].managerOnly && !canManageFarmData(member.role))) {
     return errorResponse("Your role cannot edit this type of record.", 403);
   }
   const id = params?.id?.trim();
