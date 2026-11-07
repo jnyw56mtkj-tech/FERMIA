@@ -1,5 +1,3 @@
-PRAGMA foreign_keys = ON;
-
 -- Multi-organization data model. Business records are scoped to organization_id.
 CREATE TABLE IF NOT EXISTS organizations (
   id TEXT PRIMARY KEY,
