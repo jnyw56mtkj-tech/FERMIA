@@ -28,7 +28,7 @@
 ```bash
 npm install
 npm run dev
-``
+```
 
 ## Cloudflare Pages の初期設定
 GitHubリポジトリをCloudflare Pagesに接続し、Build commandを `npm run build`、Build output directoryを `dist` に設定してください。
@@ -55,7 +55,7 @@ INSERT INTO users (id, email, display_name)
 VALUES ('user-example', 'authorized-user@example.com', '管理者');
 INSERT INTO memberships (organization_id, user_id, role)
 VALUES ('org-example', 'user-example', 'owner');
-``
+```
 上記は形式を示す例です。実際の利用者のメールアドレスと組織情報に置き換え、本人の同意なくユーザーを登録しないでください。
 
 ## API
