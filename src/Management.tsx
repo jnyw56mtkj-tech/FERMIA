@@ -170,6 +170,25 @@ export default function Management({ tab }: { tab: ModuleKey }) {
       setMessage("削除しました。"); await load();
     } catch (e) { setError(e instanceof Error ? e.message : "削除できませんでした。"); }
   };
+  const exportCsv = () => {
+    const headers = config.columns.map(column => column.label);
+    const rows = items.map(item => config.columns.map(column => {
+      let value = item[column.key];
+      if (column.key === "farm_id") value = farms.find(farm => farm.id === value)?.name ?? value;
+      if (column.key === "field_id") value = fields.find(field => field.id === value)?.name ?? value;
+      let text = value === null || value === undefined ? "" : String(value);
+      if (/^[=+\\-@\\t\\r]/.test(text)) text = "'" + text;
+      return '"' + text.replace(/"/g, '""') + '"';
+    }));
+    const csv = [headers.map(value => '"' + value.replace(/"/g, '""') + '"').join(","), ...rows.map(row => row.join(","))].join("\\r\\n");
+    const url = URL.createObjectURL(new Blob(["\\uFEFF", csv], { type: "text/csv;charset=utf-8" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `fermia-${activeKey}-${new Date().toISOString().slice(0,10)}.csv`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
+
   const saveOrg = () => {
     const value = draftOrg.trim();
     if (!value) { setError("組織IDを入力してください。"); return; }
@@ -180,7 +199,7 @@ export default function Management({ tab }: { tab: ModuleKey }) {
   return <section className="manage">
     <div className="manage-intro">
       <div><small>FERMIA DATA WORKSPACE</small><h2>{config.title}</h2><p>{config.description}</p></div>
-      <button className="manage-refresh" onClick={() => void load()} disabled={loading}><RefreshCw size={15}/>更新</button>
+      <div className="manage-top-actions"><button className="manage-refresh" onClick={() => void load()} disabled={loading}><RefreshCw size={15}/>更新</button><button className="manage-refresh" onClick={exportCsv} disabled={!items.length}>CSV出力</button></div>
     </div>
     <div className="org-setup">
       <div><b><Database size={16}/> データ接続設定</b><p>Cloudflare AccessとD1の設定が完了している場合、組織IDを入力してデータを読み込みます。</p></div>
@@ -203,7 +222,7 @@ export default function Management({ tab }: { tab: ModuleKey }) {
       <div className="manage-form-actions"><button type="button" className="cancel" onClick={reset}>キャンセル</button><button className="add" type="submit"><Save size={15}/>保存する</button></div>
     </form>}
     <div className="manage-table-wrap"><table className="manage-table"><thead><tr>{config.columns.map(c=><th key={c.key}>{c.label}</th>)}<th>操作</th></tr></thead><tbody>
-      {items.map(item=><tr key={item.id}>{config.columns.map(c=><td key={c.key}>{display(item[c.key])}</td>)}<td><div className="manage-actions"><button title="編集" onClick={()=>startEdit(item)}><Pencil size={15}/></button><button title="削除" onClick={()=>void remove(item.id)}><Trash2 size={15}/></button></div></td></tr>)}
+      {items.map(item=><tr key={item.id}>{config.columns.map(c=><td key={c.key}>{c.key === "farm_id" ? display(farms.find(farm => farm.id === item[c.key])?.name ?? item[c.key]) : c.key === "field_id" ? display(fields.find(field => field.id === item[c.key])?.name ?? item[c.key]) : display(item[c.key])}</td>)}<td><div className="manage-actions"><button title="編集" onClick={()=>startEdit(item)}><Pencil size={15}/></button><button title="削除" onClick={()=>void remove(item.id)}><Trash2 size={15}/></button></div></td></tr>)}
       {!items.length && <tr><td colSpan={config.columns.length+1} className="manage-no-data">{loading ? "読み込み中…" : "データがありません。新規登録から追加できます。"}</td></tr>}
     </tbody></table></div>
     <p className="manage-footnote">データは組織単位で管理されます。閲覧・編集できる範囲はアカウントの権限によって異なります。</p>
