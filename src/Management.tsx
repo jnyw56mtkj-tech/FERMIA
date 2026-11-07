@@ -74,7 +74,11 @@ const configs: Record<ActiveKey, { resource: string; title: string; description:
 
 function display(value: unknown) {
   if (value === null || value === undefined || value === "") return "—";
-  return String(value);
+  const labels: Record<string, string> = {
+    planned: "計画中", growing: "栽培中", harvested: "収穫済み", archived: "保存済み",
+    todo: "未着手", in_progress: "進行中", done: "完了", cancelled: "中止"
+  };
+  return labels[String(value)] || String(value);
 }
 
 export default function Management({ tab }: { tab: ModuleKey }) {
