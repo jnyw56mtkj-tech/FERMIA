@@ -7,3 +7,5 @@
 .manage-switch{display:flex;gap:5px;padding:4px;background:#e9efe6;border-radius:8px;width:max-content}.manage-switch button{border:0;border-radius:6px;background:transparent;color:#718173;padding:8px 18px;font-size:10px;cursor:pointer}.manage-switch button.selected{background:white;color:#315b38;box-shadow:0 1px 3px #20352a14;font-weight:700}
 
 .manage-top-actions{display:flex;gap:7px;flex-wrap:wrap}
+
+.worklog-summary{display:flex;align-items:center;gap:16px;background:#f0f5ed;border:1px solid #dce8d7;border-radius:14px;padding:18px 20px;margin:18px 0;color:#42613f}.worklog-summary span{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700}.worklog-summary strong{font-size:24px;color:#294d2b}.worklog-summary small{margin-left:auto;color:#71816c}.worklogs .manage-form-grid .wide{grid-column:1/-1}@media(max-width:640px){.worklog-summary{flex-wrap:wrap;gap:8px}.worklog-summary small{margin-left:0;width:100%}}
