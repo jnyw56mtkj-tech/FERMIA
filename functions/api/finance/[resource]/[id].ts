@@ -1,4 +1,4 @@
-import { errorResponse, isMemberContext, requireMember, type PagesContext } from "../../../_lib/auth";
+import { errorResponse, isMemberContext, requireMember, type PagesContext } from "../../_lib/auth";
 
 type Resource = "customers" | "sales" | "expenses";
 const resources: Record<Resource, { table: string; columns: string[] }> = {
