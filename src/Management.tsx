@@ -1,4 +1,5 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { FormEvent } from "react";
 import { Plus, RefreshCw, Trash2, Pencil, Save, X, Database, ShieldAlert } from "lucide-react";
 
 type ModuleKey = "fields" | "crops" | "work" | "inventory";
