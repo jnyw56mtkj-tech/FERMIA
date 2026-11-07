@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import { Clock3, Plus, RefreshCw, Save, Trash2, Pencil, X } from "lucide-react";
 
 type Choice = { id: string; name?: string; title?: string };
@@ -38,7 +39,7 @@ export default function WorkLogs() {
     setForm({ work_date: log.work_date, duration_minutes: String(log.duration_minutes), task_id: log.task_id || "", field_id: log.field_id || "", notes: log.notes || "" });
     setEditing(log.id); setShow(true); setNotice("");
   };
-  const submit = async (e: React.FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault(); setError(""); setNotice("");
     try {
       const body = { ...form, duration_minutes: Number(form.duration_minutes), task_id: form.task_id || null, field_id: form.field_id || null };
