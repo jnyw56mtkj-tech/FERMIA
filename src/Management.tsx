@@ -2,9 +2,20 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Plus, RefreshCw, Trash2, Pencil, Save, X, Database, ShieldAlert } from "lucide-react";
 
 type ModuleKey = "fields" | "crops" | "work" | "inventory";
+type ActiveKey = ModuleKey | "farms";
 type Item = Record<string, unknown> & { id: string };
 type FieldDef = { key: string; label: string; type?: string; required?: boolean; options?: { value: string; label: string }[]; placeholder?: string };
-const configs: Record<ModuleKey, { resource: string; title: string; description: string; fields: FieldDef[]; columns: { key: string; label: string }[] }> = {
+const configs: Record<ActiveKey, { resource: string; title: string; description: string; fields: FieldDef[]; columns: { key: string; label: string }[] }> = {
+  farms: {
+    resource: "farms", title: "農場管理", description: "経営する農場の基本情報と所在地、面積を管理します。",
+    fields: [
+      { key: "name", label: "農場名", required: true, placeholder: "例：みどりファーム" },
+      { key: "location", label: "所在地", placeholder: "市区町村など" },
+      { key: "areaHectares", label: "総面積（ha）", type: "number" },
+      { key: "notes", label: "メモ", type: "textarea" }
+    ],
+    columns: [{key:"name",label:"農場名"},{key:"location",label:"所在地"},{key:"areaHectares",label:"総面積（ha）"}]
+  },
   fields: {
     resource: "fields", title: "圃場管理", description: "農場ごとの区画、面積、土壌・水利情報を管理します。",
     fields: [
@@ -66,7 +77,9 @@ function display(value: unknown) {
 }
 
 export default function Management({ tab }: { tab: ModuleKey }) {
-  const config = configs[tab];
+  const [showFarms, setShowFarms] = useState(true);
+  const activeKey: ActiveKey = tab === "fields" && showFarms ? "farms" : tab;
+  const config = configs[activeKey];
   const [organizationId, setOrganizationId] = useState(() => localStorage.getItem("fermia_org_id") || "");
   const [draftOrg, setDraftOrg] = useState(organizationId);
   const [items, setItems] = useState<Item[]>([]);
@@ -99,11 +112,11 @@ export default function Management({ tab }: { tab: ModuleKey }) {
     setLoading(true); setError("");
     try {
       const [main, farmResult, fieldResult] = await Promise.all([
-        api(`/api/records/${config.resource}${query}`),
-        api(`/api/farms${query}`),
+        activeKey === "farms" ? api(`/api/farms${query}`) : api(`/api/records/${config.resource}${query}`),
+        activeKey === "farms" ? api(`/api/farms${query}`) : api(`/api/farms${query}`),
         api(`/api/records/fields${query}`)
       ]);
-      setItems(main.items || []);
+      setItems(activeKey === "farms" ? (main.farms || []) : (main.items || []));
       setFarms(farmResult.farms || []);
       setFields(fieldResult.items || []);
     } catch (e) {
@@ -111,7 +124,7 @@ export default function Management({ tab }: { tab: ModuleKey }) {
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { void load(); }, [tab, organizationId]);
+  useEffect(() => { void load(); }, [activeKey, organizationId]);
 
   const reset = () => {
     setForm({});
@@ -136,9 +149,10 @@ export default function Management({ tab }: { tab: ModuleKey }) {
     }
     try {
       if (tab === "fields" || tab === "crops" || tab === "work" || tab === "inventory") {
+        const base = activeKey === "farms" ? "/api/farms" : `/api/records/${config.resource}`;
         const url = editing
-          ? `/api/records/${config.resource}/${encodeURIComponent(editing)}${query}`
-          : `/api/records/${config.resource}${query}`;
+          ? `${base}/${encodeURIComponent(editing)}${query}`
+          : `${base}${query}`;
         await api(url, { method: editing ? "PATCH" : "POST", body: JSON.stringify(body) });
       }
       reset(); setMessage(editing ? "変更を保存しました。" : "登録しました。"); await load();
@@ -150,7 +164,8 @@ export default function Management({ tab }: { tab: ModuleKey }) {
     if (!window.confirm("このデータを削除しますか？")) return;
     setError(""); setMessage("");
     try {
-      await api(`/api/records/${config.resource}/${encodeURIComponent(id)}${query}`, { method: "DELETE" });
+      const base = activeKey === "farms" ? "/api/farms" : `/api/records/${config.resource}`;
+      await api(`${base}/${encodeURIComponent(id)}${query}`, { method: "DELETE" });
       setMessage("削除しました。"); await load();
     } catch (e) { setError(e instanceof Error ? e.message : "削除できませんでした。"); }
   };
