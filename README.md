@@ -9,6 +9,10 @@
 - 作業予定の登録、一覧、編集、削除
 - 資材・在庫の登録、一覧、編集、削除
 - 収穫・生産実績の登録、一覧、編集、削除（圃場・作付との紐付け）
+- 売上・入金状況の記録、一覧、編集、削除
+- 経費・費目別支出の記録、一覧、編集、削除
+- 取引先（販売先・仕入先）の登録、一覧、編集、削除
+- 売上・経費・取引先データのCSVエクスポート
 - 作業時間・日報の記録と集計
 - 組織単位のデータ分離と役割ベースのAPI権限
 - 操作履歴の記録
@@ -37,7 +41,7 @@ GitHubリポジトリをCloudflare Pagesに接続し、Build commandを `npm run
 1. CloudflareダッシュボードまたはWrangler CLIでD1を作成します：`npx wrangler d1 create fermia-db`
 2. 表示されたDatabase IDを `wrangler.toml` のD1設定例に設定します。
 3. PagesプロジェクトのSettings → Functions → D1 database bindingsで、binding名を `DB` にして同じD1を接続します。
-4. マイグレーションを適用します：`npx wrangler d1 migrations apply fermia-db --remote`（0001・0002を順に適用）
+4. マイグレーションを適用します：`npx wrangler d1 migrations apply fermia-db --remote`（0001・0002・0003を順に適用）
 5. デプロイ後、`/api/health` でD1接続状態を確認します。
 
 ### API認証（Cloudflare Access）
@@ -71,6 +75,10 @@ VALUES ('org-example', 'user-example', 'owner');
 - `PATCH|DELETE /api/records/:resource/:id?organization_id=...`：各記録の編集・削除
 - `GET|POST /api/work-logs?organization_id=...`：作業時間記録
 - `PATCH|DELETE /api/work-logs/:id?organization_id=...`：作業時間記録の編集・削除
+- `GET|POST /api/finance/customers?organization_id=...`：取引先一覧・作成
+- `GET|POST /api/finance/sales?organization_id=...`：売上一覧・作成
+- `GET|POST /api/finance/expenses?organization_id=...`：経費一覧・作成
+- `PATCH|DELETE /api/finance/:resource/:id?organization_id=...`：売上・経費・取引先の編集・削除
 - `GET|POST /api/harvest?organization_id=...`：収穫・生産実績
 - `PATCH|DELETE /api/harvest/:id?organization_id=...`：収穫実績の編集・削除
 
@@ -85,7 +93,7 @@ VALUES ('org-example', 'user-example', 'owner');
 組織IDはブラウザのローカルストレージに保存されます。認証情報やパスワードはアプリに保存しません。
 
 ## 重要：公開利用前の確認事項
-このリポジトリは初期ベータ実装です。Cloudflareのプロジェクト接続、D1 binding、Access設定、環境変数、マイグレーション適用、初期ユーザー登録は運用者側で行う必要があります。収穫記録を利用するには、追加マイグレーション `0002_harvest_records.sql` の適用も必要です。現時点では一般公開のユーザー登録、パスワード管理、招待フロー、データのバックアップ・復元UI、完全な監査ログ閲覧UIは未実装です。
+このリポジトリは初期ベータ実装です。Cloudflareのプロジェクト接続、D1 binding、Access設定、環境変数、マイグレーション適用、初期ユーザー登録は運用者側で行う必要があります。収穫記録を利用するには `0002_harvest_records.sql`、売上・経費・取引先管理を利用するには `0003_finance_sales.sql` の適用も必要です。現時点では一般公開のユーザー登録、パスワード管理、招待フロー、データのバックアップ・復元UI、完全な監査ログ閲覧UIは未実装です。
 
 ダッシュボードの圃場数・作物数・天気・作業表示は一部サンプルです。作業管理画面の登録データとはまだ連動しません。天気・AI・経営分析は未接続です。実際の経営データを扱う前に、実環境で認証・認可・組織分離・バックアップ・復旧手順を検証してください。特に農薬・肥料などの安全に関わる判断は、製品ラベル・法令・公的機関の情報を確認してください。
 
