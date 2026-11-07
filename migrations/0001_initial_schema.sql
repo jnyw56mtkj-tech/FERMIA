@@ -1,22 +1,18 @@
 PRAGMA foreign_keys = ON;
 
--- FERMIA multi-organization foundation.
--- Every business record is scoped by organization_id (tenant boundary).
-
+-- Multi-organization data model. Business records are scoped to organization_id.
 CREATE TABLE IF NOT EXISTS organizations (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
-
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
   email TEXT NOT NULL UNIQUE,
   display_name TEXT NOT NULL,
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );
-
 CREATE TABLE IF NOT EXISTS memberships (
   organization_id TEXT NOT NULL,
   user_id TEXT NOT NULL,
@@ -26,7 +22,6 @@ CREATE TABLE IF NOT EXISTS memberships (
   FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
 CREATE TABLE IF NOT EXISTS farms (
   id TEXT NOT NULL,
   organization_id TEXT NOT NULL,
@@ -39,7 +34,6 @@ CREATE TABLE IF NOT EXISTS farms (
   PRIMARY KEY (id, organization_id),
   FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
 );
-
 CREATE TABLE IF NOT EXISTS fields (
   id TEXT NOT NULL,
   organization_id TEXT NOT NULL,
@@ -54,7 +48,6 @@ CREATE TABLE IF NOT EXISTS fields (
   PRIMARY KEY (id, organization_id),
   FOREIGN KEY (farm_id, organization_id) REFERENCES farms(id, organization_id) ON DELETE CASCADE
 );
-
 CREATE TABLE IF NOT EXISTS crop_cycles (
   id TEXT NOT NULL,
   organization_id TEXT NOT NULL,
@@ -72,7 +65,6 @@ CREATE TABLE IF NOT EXISTS crop_cycles (
   PRIMARY KEY (id, organization_id),
   FOREIGN KEY (field_id, organization_id) REFERENCES fields(id, organization_id) ON DELETE CASCADE
 );
-
 CREATE TABLE IF NOT EXISTS work_tasks (
   id TEXT NOT NULL,
   organization_id TEXT NOT NULL,
@@ -94,10 +86,9 @@ CREATE TABLE IF NOT EXISTS work_tasks (
   FOREIGN KEY (farm_id, organization_id) REFERENCES farms(id, organization_id),
   FOREIGN KEY (field_id, organization_id) REFERENCES fields(id, organization_id),
   FOREIGN KEY (crop_cycle_id, organization_id) REFERENCES crop_cycles(id, organization_id),
-  FOREIGN KEY (assigned_to) REFERENCES users(id),
-  FOREIGN KEY (created_by) REFERENCES users(id)
+  FOREIGN KEY (organization_id, assigned_to) REFERENCES memberships(organization_id, user_id),
+  FOREIGN KEY (organization_id, created_by) REFERENCES memberships(organization_id, user_id)
 );
-
 CREATE TABLE IF NOT EXISTS work_logs (
   id TEXT NOT NULL,
   organization_id TEXT NOT NULL,
@@ -112,9 +103,8 @@ CREATE TABLE IF NOT EXISTS work_logs (
   FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
   FOREIGN KEY (task_id, organization_id) REFERENCES work_tasks(id, organization_id),
   FOREIGN KEY (field_id, organization_id) REFERENCES fields(id, organization_id),
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  FOREIGN KEY (organization_id, user_id) REFERENCES memberships(organization_id, user_id)
 );
-
 CREATE TABLE IF NOT EXISTS inventory_items (
   id TEXT NOT NULL,
   organization_id TEXT NOT NULL,
@@ -132,7 +122,6 @@ CREATE TABLE IF NOT EXISTS inventory_items (
   PRIMARY KEY (id, organization_id),
   FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
 );
-
 CREATE TABLE IF NOT EXISTS inventory_transactions (
   id TEXT NOT NULL,
   organization_id TEXT NOT NULL,
@@ -147,9 +136,8 @@ CREATE TABLE IF NOT EXISTS inventory_transactions (
   PRIMARY KEY (id, organization_id),
   FOREIGN KEY (item_id, organization_id) REFERENCES inventory_items(id, organization_id) ON DELETE CASCADE,
   FOREIGN KEY (related_task_id, organization_id) REFERENCES work_tasks(id, organization_id),
-  FOREIGN KEY (created_by) REFERENCES users(id)
+  FOREIGN KEY (organization_id, created_by) REFERENCES memberships(organization_id, user_id)
 );
-
 CREATE TABLE IF NOT EXISTS audit_events (
   id TEXT PRIMARY KEY,
   organization_id TEXT NOT NULL,
@@ -160,9 +148,8 @@ CREATE TABLE IF NOT EXISTS audit_events (
   metadata_json TEXT,
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
-  FOREIGN KEY (actor_user_id) REFERENCES users(id)
+  FOREIGN KEY (organization_id, actor_user_id) REFERENCES memberships(organization_id, user_id)
 );
-
 CREATE INDEX IF NOT EXISTS idx_memberships_user ON memberships(user_id);
 CREATE INDEX IF NOT EXISTS idx_farms_org ON farms(organization_id);
 CREATE INDEX IF NOT EXISTS idx_fields_farm ON fields(organization_id, farm_id);
