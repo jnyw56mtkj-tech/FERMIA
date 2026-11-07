@@ -189,6 +189,7 @@ export default function Management({ tab }: { tab: ModuleKey }) {
     {error && <div className="manage-error">{error}</div>}
     {message && <div className="manage-success">{message}</div>}
     <div className="manage-toolbar"><div><b>登録データ</b><span>{items.length} 件</span></div><button className="add" onClick={()=>{setForm({});setEditing(null);setShowForm(v=>!v);}} disabled={!organizationId}><Plus size={16}/>{showForm ? "閉じる" : "新規登録"}</button></div>
+    {tab === "fields" && <div className="manage-switch"><button className={showFarms ? "selected" : ""} onClick={()=>{setShowFarms(true);reset();}}>農場</button><button className={!showFarms ? "selected" : ""} onClick={()=>{setShowFarms(false);reset();}}>圃場</button></div>}
     {showForm && <form className="manage-form" onSubmit={submit}>
       <div className="manage-form-head"><b>{editing ? "データを編集" : "新しいデータを登録"}</b><button type="button" onClick={reset}><X size={16}/></button></div>
       <div className="manage-form-grid">{config.fields.map(field=><label key={field.key}>{field.label}{field.required && <em>必須</em>}
