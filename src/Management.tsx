@@ -177,11 +177,11 @@ export default function Management({ tab }: { tab: ModuleKey }) {
       if (column.key === "farm_id") value = farms.find(farm => farm.id === value)?.name ?? value;
       if (column.key === "field_id") value = fields.find(field => field.id === value)?.name ?? value;
       let text = value === null || value === undefined ? "" : String(value);
-      if (/^[=+\\-@\\t\\r]/.test(text)) text = "'" + text;
+      if (/^[=+\-@\t\r]/.test(text)) text = "'" + text;
       return '"' + text.replace(/"/g, '""') + '"';
     }));
-    const csv = [headers.map(value => '"' + value.replace(/"/g, '""') + '"').join(","), ...rows.map(row => row.join(","))].join("\\r\\n");
-    const url = URL.createObjectURL(new Blob(["\\uFEFF", csv], { type: "text/csv;charset=utf-8" }));
+    const csv = [headers.map(value => '"' + value.replace(/"/g, '""') + '"').join(","), ...rows.map(row => row.join(","))].join("\r\n");
+    const url = URL.createObjectURL(new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8" }));
     const anchor = document.createElement("a");
     anchor.href = url;
     anchor.download = `fermia-${activeKey}-${new Date().toISOString().slice(0,10)}.csv`;
