@@ -93,6 +93,10 @@ export async function onRequestPost({ request, env, params }: PagesContext): Pro
     }
   }
 
+  if (resource[0] === "crops" && values.status === undefined) values.status = "planned";
+  if (resource[0] === "tasks" && values.status === undefined) values.status = "todo";
+  if (resource[0] === "inventory" && values.quantity === undefined) values.quantity = 0;
+
   const id = crypto.randomUUID();
   const columns = ["id", "organization_id", ...Object.keys(values)];
   const placeholders = columns.map(() => "?").join(", ");
