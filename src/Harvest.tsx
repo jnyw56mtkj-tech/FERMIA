@@ -24,8 +24,8 @@ export default function Harvest() {
   const load=async()=>{if(!org.trim())return;setBusy(true);setError("");try{const [h,f,c]=await Promise.all([api("/api/harvest"+query),api("/api/records/fields"+query),api("/api/records/crops"+query)]);setRecords(h.items||[]);setFields(f.items||[]);setCrops(c.items||[]);}catch(e){setError(e instanceof Error?e.message:"読み込みに失敗しました。");}finally{setBusy(false);}};
   useEffect(()=>{void load();},[org]);
   const availableCrops=useMemo(()=>crops.filter(c=>c.field_id===form.field_id),[crops,form.field_id]);
-  const total=records.reduce((sum,r)=>sum+r.quantity,0);
-  const units=[...new Set(records.map(r=>r.unit))];
+  const quantityByUnit=records.reduce((map,r)=>{map.set(r.unit,(map.get(r.unit)||0)+r.quantity);return map;},new Map<string,number>());
+  const quantitySummary=[...quantityByUnit.entries()].map(([unit,quantity])=>quantity.toLocaleString("ja-JP",{maximumFractionDigits:2})+" "+unit).join(" / ");
   const reset=()=>{setForm(blank);setEditing("");setShow(false);};
   const startEdit=(r:Harvest)=>{setForm({field_id:r.field_id,crop_cycle_id:r.crop_cycle_id||"",harvested_on:r.harvested_on,quantity:String(r.quantity),unit:r.unit,quality_grade:r.quality_grade||"",destination:r.destination||"",notes:r.notes||""});setEditing(r.id);setShow(true);setNotice("");};
   const submit=async(e:FormEvent)=>{e.preventDefault();setError("");setNotice("");try{const body={...form,quantity:Number(form.quantity),crop_cycle_id:form.crop_cycle_id||null,quality_grade:form.quality_grade||null,destination:form.destination||null,notes:form.notes||null};await api(editing?"/api/harvest/"+encodeURIComponent(editing)+query:"/api/harvest"+query,{method:editing?"PATCH":"POST",body:JSON.stringify(body)});reset();setNotice(editing?"収穫記録を更新しました。":"収穫記録を保存しました。");await load();}catch(e){setError(e instanceof Error?e.message:"保存に失敗しました。");}};
@@ -35,7 +35,7 @@ export default function Harvest() {
     <div className="manage-intro"><div><small>FERMIA PRODUCTION</small><h2>収穫・生産実績</h2><p>収穫日・圃場・作物・数量・品質・出荷先を記録し、生産実績を蓄積します。</p></div><div className="manage-top-actions"><button className="manage-refresh" onClick={()=>void load()} disabled={busy}><RefreshCw size={15}/>更新</button><button className="manage-refresh" onClick={exportCsv} disabled={!records.length}>CSV出力</button></div></div>
     {!org&&<div className="manage-empty"><b>組織IDが未設定です</b><span>農場・圃場管理で組織IDを設定してください。</span></div>}
     {error&&<div className="manage-error">{error}</div>}{notice&&<div className="manage-success">{notice}</div>}
-    <div className="harvest-metrics"><div><span><Wheat size={18}/> 登録件数</span><strong>{records.length}<small>件</small></strong></div><div><span><TrendingUp size={18}/> 記録数量の合計</span><strong>{total.toLocaleString("ja-JP",{maximumFractionDigits:2})}<small>{units.length===1?units[0]:"（複数単位）"}</small></strong></div><div><span><Boxes size={18}/> 対象圃場</span><strong>{new Set(records.map(r=>r.field_id)).size}<small>筆</small></strong></div></div>
+    <div className="harvest-metrics"><div><span><Wheat size={18}/> 登録件数</span><strong>{records.length}<small>件</small></strong></div><div><span><TrendingUp size={18}/> 数量内訳（単位別）</span><strong className="harvest-quantity">{quantitySummary||"—"}</strong></div><div><span><Boxes size={18}/> 対象圃場</span><strong>{new Set(records.map(r=>r.field_id)).size}<small>筆</small></strong></div></div>
     <div className="manage-toolbar"><div><b>収穫記録一覧</b><span>{records.length} 件</span></div><button className="add" disabled={!org} onClick={()=>{setForm(blank);setEditing("");setShow(v=>!v);}}><Plus size={16}/>{show?"閉じる":"収穫を記録"}</button></div>
     {show&&<form className="manage-form" onSubmit={submit}><div className="manage-form-head"><b>{editing?"収穫記録を編集":"新しい収穫記録"}</b><button type="button" onClick={reset}><X size={16}/></button></div>
       <div className="manage-form-grid">
